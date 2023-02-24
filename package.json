@@ -1,10 +1,11 @@
 {
-  "name": "eQur'an-api-app",
+  "name": "equran-api-app",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-dev": "nodemon ./src/server.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,12 @@
   "bugs": {
     "url": "https://github.com/RifkiFiransah/eQur-an-App-API/issues"
   },
-  "homepage": "https://github.com/RifkiFiransah/eQur-an-App-API#readme"
+  "homepage": "https://github.com/RifkiFiransah/eQur-an-App-API#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "@hapi/hapi": "^21.3.0",
+    "nanoid": "^3.3.4"
+  }
 }
