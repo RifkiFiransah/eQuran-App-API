@@ -1,9 +1,10 @@
+const {addSuratHandler, getAllSuratHandler} = require('./handler')
 const routes= [
   {
     method: 'POST',
-    path: '/surats',
-    handler: () => {},
-    option: {
+    path: '/surat',
+    handler: addSuratHandler,
+    options: {
       cors: {
         origin: ['*']
       }
@@ -12,7 +13,7 @@ const routes= [
   {
     method: 'GET',
     path: '/surats',
-    handler: () => {}
+    handler: getAllSuratHandler
   },
   {
     method: 'GET',
