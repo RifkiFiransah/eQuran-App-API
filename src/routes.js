@@ -1,4 +1,4 @@
-const {addSuratHandler, getAllSuratHandler} = require('./handler')
+const {addSuratHandler, getAllSuratHandler, getSuratByIdHandler, editSuratByIdHandler, deleteSuratByIdHandler} = require('./handler')
 const routes= [
   {
     method: 'POST',
@@ -18,17 +18,17 @@ const routes= [
   {
     method: 'GET',
     path: '/surat/{id}',
-    handler: () => {}
+    handler: getSuratByIdHandler
   },
   {
     method: 'PUT',
     path: '/surat/{id}',
-    handler: () => {}
+    handler: editSuratByIdHandler
   },
   {
     method: 'DELETE',
     path: '/surat/{id}',
-    handler: () => {}
+    handler: deleteSuratByIdHandler
   }
 ]
 
