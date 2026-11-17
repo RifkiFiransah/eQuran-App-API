@@ -1,11 +1,18 @@
 {
   "name": "equran-api-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "REST API e-Quran dengan proxy equran.id, CRUD surat lokal, dan autentikasi JWT",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start-dev": "nodemon ./src/server.js"
+    "start": "node src/server.js",
+    "start-dev": "nodemon ./src/server.js",
+    "dev": "nodemon ./src/server.js",
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke.ps1"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -22,7 +29,12 @@
     "nodemon": "3.1.11"
   },
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "@hapi/hapi": "^21.3.0",
+    "@hapi/jwt": "^3.2.4",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.10",
+    "joi": "^18.3.2",
     "nanoid": "^3.3.11"
   },
   "overrides": {

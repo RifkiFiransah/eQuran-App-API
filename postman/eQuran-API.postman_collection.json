@@ -1,0 +1,941 @@
+{
+  "info": {
+    "_postman_id": "b2590b0a-5970-4ec2-a622-a2be749e0095",
+    "name": "e-Quran API",
+    "description": "Koleksi pengujian seluruh endpoint e-Quran API.\n\nCara pakai:\n1. Jalankan server: npm start\n2. Import collection dan environment.\n3. Jalankan folder secara berurutan lewat Collection Runner.\n\nToken, email, dan ID surat disimpan otomatis ke collection variables oleh test script. Pastikan request Register dijalankan sebelum request Auth lainnya.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Info",
+      "item": [
+        {
+          "name": "Info API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Nama aplikasi sesuai', () => pm.expect(body.data.name).to.eql('equran-api-app'));",
+                  "pm.test('Daftar endpoint tersedia', () => pm.expect(body.data.endpoints.quranList).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Uptime berupa angka', () => pm.expect(body.data.uptimeSeconds).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Quran (Proxy equran.id)",
+      "item": [
+        {
+          "name": "Daftar Surat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat?limit=3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Total surat 114', () => pm.expect(body.data.total).to.eql(114));",
+                  "pm.test('Limit 3 diterapkan', () => pm.expect(body.data.surat).to.have.lengthOf(3));",
+                  "pm.test('Nama latin tersedia', () => pm.expect(body.data.surat[0].nama_latin).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Daftar Surat - Filter Nama",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat?nama=baqarah"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Hasil filter satu surat', () => pm.expect(body.data.total).to.eql(1));",
+                  "pm.test('Surat yang ditemukan Al-Baqarah', () => pm.expect(body.data.surat[0].nomor).to.eql(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Daftar Surat - Filter Tempat Turun",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat?tempat_turun=mekah&limit=5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Ada hasil', () => pm.expect(body.data.total).to.be.above(0));",
+                  "pm.test('Semua hasil bertempat turun mekah', () => {",
+                  "  body.data.surat.forEach((surat) => pm.expect(surat.tempat_turun).to.eql('mekah'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detail Surat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Nomor surat 1', () => pm.expect(body.data.surat.nomor).to.eql(1));",
+                  "pm.test('Jumlah ayat 7', () => pm.expect(body.data.surat.ayat).to.have.lengthOf(7));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tafsir Surat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat/1/tafsir"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Tafsir berupa array', () => pm.expect(body.data.tafsir.tafsir).to.be.an('array').that.is.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detail Surat - Nomor Tidak Valid",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/quran/surat/115"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response fail', () => pm.expect(body.status).to.eql('fail'));",
+                  "pm.test('Pesan validasi sesuai', () => pm.expect(body.message).to.eql('Validasi gagal'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Autentikasi",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = 'postman' + Date.now() + '@example.com';",
+                  "pm.collectionVariables.set('email', email);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Token tersedia', () => pm.expect(body.data.token).to.be.a('string').and.not.empty);",
+                  "pm.test('Password hash tidak bocor', () => pm.expect(body.data.user.passwordHash).to.be.undefined);",
+                  "if (body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('userId', body.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Postman Tester\", \"email\": \"{{email}}\", \"password\": \"{{password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{email}}\", \"password\": \"{{password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Token tersedia', () => pm.expect(body.data.token).to.be.a('string').and.not.empty);",
+                  "if (body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Profil Saya",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Email sesuai user yang register', () => pm.expect(body.data.user.email).to.eql(pm.collectionVariables.get('email')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register Duplikat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Postman Duplikat\", \"email\": \"{{email}}\", \"password\": \"{{password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/register"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pesan email terdaftar', () => pm.expect(body.message).to.eql('Email sudah terdaftar'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Password Salah",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{email}}\", \"password\": \"password-salah\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pesan kredensial salah', () => pm.expect(body.message).to.eql('Email atau password salah'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Profil Tanpa Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response fail', () => pm.expect(body.status).to.eql('fail'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Surat Lokal (CRUD)",
+      "item": [
+        {
+          "name": "Create Surat",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl');",
+                  "pm.sendRequest(baseUrl + '/surats?limit=114', function (err, response) {",
+                  "  const used = [];",
+                  "  if (!err && response.code === 200) {",
+                  "    const body = response.json();",
+                  "    (body.data.surat || []).forEach(function (surat) { used.push(surat.nomor); });",
+                  "  }",
+                  "  const available = [];",
+                  "  for (let nomor = 1; nomor <= 114; nomor++) {",
+                  "    if (!used.includes(nomor)) { available.push(nomor); }",
+                  "  }",
+                  "  const picked = available.length ? available[Math.floor(Math.random() * available.length)] : 1;",
+                  "  pm.collectionVariables.set('suratNomor', String(picked));",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('ID surat tersedia', () => pm.expect(body.data.surat.id).to.be.a('string').and.not.empty);",
+                  "if (body.data && body.data.surat) {",
+                  "  pm.collectionVariables.set('suratId', body.data.surat.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nomor\": {{suratNomor}}, \"nama\": \"Surat Postman\", \"jumlahAyat\": 7, \"turun\": \"mekah\", \"arti\": \"Pembukaan\", \"deskripsi\": \"Dibuat oleh Postman\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surats"
+          }
+        },
+        {
+          "name": "Daftar Surat Lokal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/surats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.test('Ada data lokal', () => pm.expect(body.data.total).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter Surat Lokal - Nomor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/surats?nomor={{suratNomor}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Hasil filter satu data', () => pm.expect(body.data.total).to.eql(1));",
+                  "pm.test('Nomor sesuai', () => pm.expect(body.data.surat[0].nomor).to.eql(Number(pm.collectionVariables.get('suratNomor'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detail Surat Lokal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/surats/{{suratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('ID sesuai', () => pm.expect(body.data.surat.id).to.eql(pm.collectionVariables.get('suratId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Surat Lokal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nama\": \"Surat Postman Diperbarui\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surats/{{suratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Nama sudah diperbarui', () => pm.expect(body.data.surat.nama).to.eql('Surat Postman Diperbarui'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Surat Duplikat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nomor\": {{suratNomor}}, \"nama\": \"Surat Duplikat\", \"jumlahAyat\": 7, \"turun\": \"mekah\", \"arti\": \"Pembukaan\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pesan duplikat sesuai', () => pm.expect(body.message).to.eql('Surat dengan nomor tersebut sudah ada'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Surat Tanpa Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nomor\": 1, \"nama\": \"Tanpa Token\", \"jumlahAyat\": 7, \"turun\": \"mekah\", \"arti\": \"Pembukaan\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response fail', () => pm.expect(body.status).to.eql('fail'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Surat Payload Tidak Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nomor\": 0, \"nama\": \"\", \"jumlahAyat\": -1, \"turun\": \"mars\", \"arti\": \"\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pesan validasi sesuai', () => pm.expect(body.message).to.eql('Validasi gagal'));",
+                  "pm.test('Detail error tersedia', () => pm.expect(body.errors).to.be.an('array').that.is.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detail Surat Tidak Ditemukan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/surats/{{fakeId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pesan tidak ditemukan', () => pm.expect(body.message).to.eql('Surat tidak ditemukan'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legacy - Detail /surat/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/surat/{{suratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('ID sesuai', () => pm.expect(body.data.surat.id).to.eql(pm.collectionVariables.get('suratId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legacy - Update /surat/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"arti\": \"Arti dari Postman\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surat/{{suratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Arti sudah diperbarui', () => pm.expect(body.data.surat.arti).to.eql('Arti dari Postman'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legacy - Create /surat",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl');",
+                  "pm.sendRequest(baseUrl + '/surats?limit=114', function (err, response) {",
+                  "  const used = [];",
+                  "  if (!err && response.code === 200) {",
+                  "    const body = response.json();",
+                  "    (body.data.surat || []).forEach(function (surat) { used.push(surat.nomor); });",
+                  "  }",
+                  "  const available = [];",
+                  "  for (let nomor = 1; nomor <= 114; nomor++) {",
+                  "    if (!used.includes(nomor)) { available.push(nomor); }",
+                  "  }",
+                  "  const picked = available.length ? available[Math.floor(Math.random() * available.length)] : 1;",
+                  "  pm.collectionVariables.set('aliasSuratNomor', String(picked));",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "if (body.data && body.data.surat) {",
+                  "  pm.collectionVariables.set('aliasSuratId', body.data.surat.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nomor\": {{aliasSuratNomor}}, \"nama\": \"Surat Alias Postman\", \"jumlahAyat\": 7, \"turun\": \"mekah\", \"arti\": \"Pembukaan\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/surat"
+          }
+        },
+        {
+          "name": "Legacy - Delete /surat/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/surat/{{aliasSuratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));",
+                  "pm.collectionVariables.set('aliasSuratId', '');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Surat Lokal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/surats/{{suratId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response success', () => pm.expect(body.status).to.eql('success'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": "password123"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "suratId",
+      "value": ""
+    },
+    {
+      "key": "suratNomor",
+      "value": "99"
+    },
+    {
+      "key": "aliasSuratId",
+      "value": ""
+    },
+    {
+      "key": "aliasSuratNomor",
+      "value": "98"
+    },
+    {
+      "key": "fakeId",
+      "value": "id-tidak-ada"
+    }
+  ]
+}

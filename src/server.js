@@ -1,21 +1,35 @@
-const Hapi = require('@hapi/hapi')
-const routes = require('./routes')
+require('dotenv').config()
 
-const init = async () => {
-  const server = Hapi.server({
-    port: 5000,
-    host: 'localhost',
-    routes: {
-      cors: {
-        origin: ['*']
-      }
-    }
-  })
+const { createServer } = require('./app')
+const { DEFAULT_JWT_SECRET } = require('./config')
 
-  server.route(routes)
+const start = async () => {
+  const server = await createServer()
   await server.start()
 
-  console.log(`Server berjalan pada : ${server.info.uri}`);
+  const config = server.app.config
+  if (config.isProduction && config.jwtSecret === DEFAULT_JWT_SECRET) {
+    console.warn('PERINGATAN: JWT_SECRET masih memakai nilai default. Segera atur JWT_SECRET di environment produksi.')
+  }
+
+  console.log(`Server berjalan pada: ${server.info.uri}`)
+
+  const shutdown = async (signal) => {
+    console.log(`Menerima ${signal}, menghentikan server...`)
+    await server.stop({ timeout: 5000 })
+    process.exit(0)
+  }
+
+  process.on('SIGINT', () => {
+    shutdown('SIGINT')
+  })
+
+  process.on('SIGTERM', () => {
+    shutdown('SIGTERM')
+  })
 }
 
-init()
+start().catch((error) => {
+  console.error('Gagal menjalankan server:', error)
+  process.exit(1)
+})
