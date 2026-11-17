@@ -182,6 +182,30 @@ Kode status yang digunakan:
 - Endpoint tulis surat memerlukan token.
 - Jika token kedaluwarsa, login ulang untuk mendapatkan token baru.
 
+## 5.1 Dokumentasi API dengan Swagger
+
+Swagger UI tersedia setelah server berjalan:
+
+```text
+http://localhost:5000/docs
+```
+
+Langkah mencoba endpoint dari Swagger:
+
+1. Jalankan register atau login lewat Swagger atau terminal.
+2. Salin nilai `data.token`.
+3. Klik tombol **Authorize** di kanan atas Swagger UI.
+4. Isi dengan `Bearer <token>`, lalu klik **Authorize** dan **Close**.
+5. Buka endpoint yang diinginkan, klik **Try it out**, isi parameter, lalu **Execute**.
+
+Spesifikasi OpenAPI dapat diakses di:
+
+```text
+http://localhost:5000/openapi.json
+```
+
+File tersebut bisa diimpor ke Postman, Insomnia, atau tool lain yang mendukung OpenAPI 3.
+
 ## 6. Pengujian
 
 ### 6.1 Test Otomatis

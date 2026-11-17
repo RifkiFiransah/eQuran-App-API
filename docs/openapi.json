@@ -1,0 +1,1286 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "e-Quran API",
+    "version": "1.0.0",
+    "description": "REST API Al-Quran dengan proxy equran.id, CRUD surat lokal, dan autentikasi JWT.\n\nGunakan tombol Authorize dan isi token dari endpoint login atau register dengan format `Bearer <token>`."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Server aktif"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Info",
+      "description": "Informasi dan health check"
+    },
+    {
+      "name": "Quran",
+      "description": "Proxy data surat, ayat, dan tafsir dari equran.id"
+    },
+    {
+      "name": "Auth",
+      "description": "Registrasi, login, dan profil pengguna"
+    },
+    {
+      "name": "Surat Lokal",
+      "description": "CRUD surat yang tersimpan di server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["status", "message"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["fail"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "required": ["status", "message"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["fail"]
+          },
+          "message": {
+            "type": "string",
+            "example": "Validasi gagal"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["\"nomor\" must be less than or equal to 114"]
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "V1StGXR8_Z5jdHi6"
+          },
+          "name": {
+            "type": "string",
+            "example": "Rifki Firansah"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "rifki@example.com"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuthData": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        }
+      },
+      "SuratInput": {
+        "type": "object",
+        "required": ["nomor", "nama", "jumlahAyat", "turun", "arti"],
+        "properties": {
+          "nomor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 114,
+            "example": 1
+          },
+          "nama": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Al-Fatihah"
+          },
+          "jumlahAyat": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "example": 7
+          },
+          "turun": {
+            "type": "string",
+            "enum": ["mekah", "madinah"],
+            "example": "mekah"
+          },
+          "arti": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Pembukaan"
+          },
+          "deskripsi": {
+            "type": "string",
+            "maxLength": 5000,
+            "example": "Surat pembuka Al-Quran."
+          }
+        }
+      },
+      "SuratUpdateInput": {
+        "type": "object",
+        "minProperties": 1,
+        "properties": {
+          "nomor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 114
+          },
+          "nama": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "jumlahAyat": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300
+          },
+          "turun": {
+            "type": "string",
+            "enum": ["mekah", "madinah"]
+          },
+          "arti": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "deskripsi": {
+            "type": "string",
+            "maxLength": 5000
+          }
+        }
+      },
+      "Surat": {
+        "type": "object",
+        "required": ["id", "nomor", "nama", "jumlahAyat", "turun", "arti", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "L6oAnAOa6pMsqbKK"
+          },
+          "nomor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 114,
+            "example": 1
+          },
+          "nama": {
+            "type": "string",
+            "example": "Al-Fatihah"
+          },
+          "jumlahAyat": {
+            "type": "integer",
+            "example": 7
+          },
+          "turun": {
+            "type": "string",
+            "enum": ["mekah", "madinah"]
+          },
+          "arti": {
+            "type": "string",
+            "example": "Pembukaan"
+          },
+          "deskripsi": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuranSuratSummary": {
+        "type": "object",
+        "properties": {
+          "nomor": {
+            "type": "integer",
+            "example": 1
+          },
+          "nama": {
+            "type": "string",
+            "example": "الفاتحة"
+          },
+          "nama_latin": {
+            "type": "string",
+            "example": "Al-Fatihah"
+          },
+          "jumlah_ayat": {
+            "type": "integer",
+            "example": 7
+          },
+          "tempat_turun": {
+            "type": "string",
+            "enum": ["mekah", "madinah"]
+          },
+          "arti": {
+            "type": "string",
+            "example": "Pembukaan"
+          },
+          "deskripsi": {
+            "type": "string"
+          }
+        }
+      },
+      "QuranAyat": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "surah": {
+            "type": "integer"
+          },
+          "nomor": {
+            "type": "integer"
+          },
+          "ar": {
+            "type": "string"
+          },
+          "tr": {
+            "type": "string"
+          },
+          "idn": {
+            "type": "string"
+          }
+        }
+      },
+      "QuranSuratDetail": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "nomor": {
+            "type": "integer",
+            "example": 1
+          },
+          "nama": {
+            "type": "string"
+          },
+          "nama_latin": {
+            "type": "string",
+            "example": "Al-Fatihah"
+          },
+          "jumlah_ayat": {
+            "type": "integer",
+            "example": 7
+          },
+          "tempat_turun": {
+            "type": "string"
+          },
+          "arti": {
+            "type": "string"
+          },
+          "deskripsi": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "boolean"
+          },
+          "ayat": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuranAyat"
+            }
+          }
+        }
+      },
+      "QuranTafsir": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "nomor": {
+            "type": "integer",
+            "example": 1
+          },
+          "nama": {
+            "type": "string"
+          },
+          "nama_latin": {
+            "type": "string",
+            "example": "Al-Fatihah"
+          },
+          "tafsir": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ayat": {
+                  "type": "integer"
+                },
+                "teks": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Validasi request gagal",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Token tidak ada atau tidak valid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Autentikasi diperlukan atau token tidak valid"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Data atau endpoint tidak ditemukan",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Surat tidak ditemukan"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Data sudah ada",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Surat dengan nomor tersebut sudah ada"
+            }
+          }
+        }
+      },
+      "BadGateway": {
+        "description": "Layanan equran.id tidak dapat dihubungi",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Gagal menghubungi layanan equran.id"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Kesalahan internal server",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Terjadi kesalahan pada server"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Info"],
+        "summary": "Informasi API",
+        "description": "Mengembalikan informasi aplikasi dan daftar endpoint.",
+        "responses": {
+          "200": {
+            "description": "Informasi API",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "e-Quran API berjalan",
+                  "data": {
+                    "name": "equran-api-app",
+                    "version": "1.0.0",
+                    "endpoints": {
+                      "health": "GET /health",
+                      "quranList": "GET /quran/surat"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Info"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Server sehat",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Server sehat",
+                  "data": {
+                    "uptimeSeconds": 120,
+                    "timestamp": "2026-11-17T07:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quran/surat": {
+      "get": {
+        "tags": ["Quran"],
+        "summary": "Daftar surat",
+        "description": "Mengambil daftar 114 surat dari equran.id dengan cache.",
+        "parameters": [
+          {
+            "name": "nama",
+            "in": "query",
+            "description": "Cari pada nama latin, nama Arab, atau arti",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tempat_turun",
+            "in": "query",
+            "description": "Filter tempat turun",
+            "schema": {
+              "type": "string",
+              "enum": ["mekah", "madinah"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 114,
+              "default": 114
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar surat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "surat": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/QuranSuratSummary"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          }
+        }
+      }
+    },
+    "/quran/surat/{nomor}": {
+      "get": {
+        "tags": ["Quran"],
+        "summary": "Detail surat",
+        "description": "Mengambil detail satu surat beserta ayat dari equran.id.",
+        "parameters": [
+          {
+            "name": "nomor",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 114
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail surat",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Detail surat berhasil diambil",
+                  "data": {
+                    "surat": {
+                      "nomor": 1,
+                      "nama": "الفاتحة",
+                      "nama_latin": "Al-Fatihah",
+                      "jumlah_ayat": 7,
+                      "tempat_turun": "mekah",
+                      "arti": "Pembukaan",
+                      "ayat": [
+                        {
+                          "id": 1,
+                          "surah": 1,
+                          "nomor": 1,
+                          "ar": "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+                          "tr": "Bismillāhir-raḥmānir-raḥīm(i).",
+                          "idn": "Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang."
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          }
+        }
+      }
+    },
+    "/quran/surat/{nomor}/tafsir": {
+      "get": {
+        "tags": ["Quran"],
+        "summary": "Tafsir surat",
+        "parameters": [
+          {
+            "name": "nomor",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 114
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tafsir surat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tafsir": {
+                          "$ref": "#/components/schemas/QuranTafsir"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrasi user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 72
+                  }
+                }
+              },
+              "example": {
+                "name": "Rifki Firansah",
+                "email": "rifki@example.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrasi berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthData"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              },
+              "example": {
+                "email": "rifki@example.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthData"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Profil user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/surats": {
+      "get": {
+        "tags": ["Surat Lokal"],
+        "summary": "Daftar surat lokal",
+        "parameters": [
+          {
+            "name": "nomor",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 114
+            }
+          },
+          {
+            "name": "nama",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 114,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar surat lokal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "surat": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Surat"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Surat Lokal"],
+        "summary": "Tambah surat lokal",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuratInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Surat berhasil ditambahkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "surat": {
+                          "$ref": "#/components/schemas/Surat"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/surats/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Surat Lokal"],
+        "summary": "Detail surat lokal",
+        "responses": {
+          "200": {
+            "description": "Detail surat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "surat": {
+                          "$ref": "#/components/schemas/Surat"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Surat Lokal"],
+        "summary": "Ubah surat lokal",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuratUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Surat berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "surat": {
+                          "$ref": "#/components/schemas/Surat"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Surat Lokal"],
+        "summary": "Hapus surat lokal",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Surat berhasil dihapus",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Surat berhasil dihapus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/surat": {
+      "post": {
+        "tags": ["Surat Lokal"],
+        "summary": "Tambah surat lokal (alias)",
+        "deprecated": true,
+        "description": "Alias lama dari POST /surats.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuratInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Surat berhasil ditambahkan"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/surat/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Surat Lokal"],
+        "summary": "Detail surat lokal (alias)",
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "Detail surat"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Surat Lokal"],
+        "summary": "Ubah surat lokal (alias)",
+        "deprecated": true,
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuratUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Surat berhasil diperbarui"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Surat Lokal"],
+        "summary": "Hapus surat lokal (alias)",
+        "deprecated": true,
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Surat berhasil dihapus"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  }
+}

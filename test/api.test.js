@@ -281,6 +281,40 @@ test('payload surat tidak valid ditolak dengan detail validasi', async (t) => {
   assert.ok(missingFields.result.errors.length >= 2)
 })
 
+test('GET /docs menyajikan halaman Swagger UI', async (t) => {
+  const { server } = await setupServer(t)
+
+  const response = await server.inject('/docs')
+
+  assert.equal(response.statusCode, 200)
+  assert.match(response.headers['content-type'], /text\/html/)
+  assert.match(response.payload, /SwaggerUIBundle/)
+})
+
+test('GET /openapi.json mengembalikan spesifikasi OpenAPI', async (t) => {
+  const { server } = await setupServer(t)
+
+  const response = await server.inject('/openapi.json')
+
+  assert.equal(response.statusCode, 200)
+  assert.match(response.headers['content-type'], /application\/json/)
+  assert.equal(response.result.openapi, '3.0.3')
+  assert.equal(response.result.info.title, 'e-Quran API')
+  assert.ok(response.result.paths['/quran/surat'])
+  assert.ok(response.result.paths['/auth/login'])
+})
+
+test('GET /docs/assets menyajikan aset Swagger UI', async (t) => {
+  const { server } = await setupServer(t)
+
+  const css = await server.inject('/docs/assets/swagger-ui.css')
+  assert.equal(css.statusCode, 200)
+  assert.match(css.headers['content-type'], /text\/css/)
+
+  const missing = await server.inject('/docs/assets/tidak-ada.js')
+  assert.equal(missing.statusCode, 404)
+})
+
 test('endpoint tidak dikenal mengembalikan 404 dengan format konsisten', async (t) => {
   const { server } = await setupServer(t)
 

@@ -7,6 +7,8 @@ Collection dan environment tersedia di folder `postman`:
 
 Collection berisi 28 request dengan 74 assertion dan sudah diverifikasi memakai Newman.
 
+Jika ingin mencoba endpoint secara interaktif tanpa Postman, gunakan Swagger UI di `http://localhost:5000/docs` atau impor `docs/openapi.json` ke Postman sebagai alternatif collection.
+
 ## 1. Import ke Postman
 
 1. Buka Postman.

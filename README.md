@@ -1,6 +1,6 @@
 # e-Quran API
 
-REST API Al-Quran berbahasa Indonesia yang memadukan data publik [equran.id](https://equran.id) dengan CRUD surat lokal dan autentikasi JWT.
+e-Quran API adalah backend REST API untuk aplikasi Al-Quran yang dibangun dengan Node.js, Hapi, dan Joi. API ini mem-proxy data 114 surat, detail ayat, dan tafsir dari equran.id dengan cache dan timeout, sekaligus menyediakan CRUD surat lokal yang tersimpan permanen dalam berkas JSON. Keamanan ditangani melalui autentikasi JWT, password hashing bcrypt, validasi payload, dan pembatasan endpoint tulis. Proyek dilengkapi test otomatis, smoke test PowerShell, serta Postman collection dan environment untuk pengujian seluruh endpoint.
 
 ## Fitur
 
@@ -9,6 +9,7 @@ REST API Al-Quran berbahasa Indonesia yang memadukan data publik [equran.id](htt
 - Autentikasi JWT: register, login, dan profil pengguna
 - Validasi request dengan Joi dan format respons yang konsisten
 - Filter, pencarian, dan pagination pada daftar surat
+- Dokumentasi interaktif Swagger UI di `/docs` dan spesifikasi OpenAPI di `/openapi.json`
 - Alias endpoint lama (`/surat`) untuk kompatibilitas
 - Test otomatis, smoke test PowerShell, dan Postman collection
 
@@ -62,6 +63,15 @@ npm run start-dev
 
 Server berjalan di `http://localhost:5000` secara default.
 
+## Dokumentasi API Interaktif
+
+Setelah server berjalan, buka:
+
+- Swagger UI: `http://localhost:5000/docs`
+- Spesifikasi OpenAPI: `http://localhost:5000/openapi.json`
+
+Untuk mencoba endpoint yang membutuhkan autentikasi, jalankan register atau login, lalu klik **Authorize** di Swagger UI dan masukkan token dengan format `Bearer <token>`. Swagger UI disajikan secara lokal sehingga tetap bisa dibuka tanpa CDN.
+
 ## Variabel Environment
 
 | Variabel                 | Default                 | Keterangan                        |
@@ -81,8 +91,10 @@ Server berjalan di `http://localhost:5000` secara default.
 | Method | Path                          | Auth   | Keterangan                        |
 | ------ | ----------------------------- | ------ | --------------------------------- |
 | GET    | `/`                           | Tidak  | Informasi API dan daftar endpoint |
-| GET    | `/health`                     | Tidak  | Health check                      |
-| GET    | `/quran/surat`                | Tidak  | Daftar 114 surat                  |
+| GET | `/health` | Tidak | Health check |
+| GET | `/docs` | Tidak | Dokumentasi interaktif Swagger UI |
+| GET | `/openapi.json` | Tidak | Spesifikasi OpenAPI 3 |
+| GET | `/quran/surat` | Tidak | Daftar 114 surat |
 | GET    | `/quran/surat/{nomor}`        | Tidak  | Detail surat beserta ayat         |
 | GET    | `/quran/surat/{nomor}/tafsir` | Tidak  | Tafsir surat                      |
 | POST   | `/auth/register`              | Tidak  | Registrasi user                   |
@@ -142,10 +154,11 @@ src/
   handlers/              Handler request
   services/              Proxy equran.id dan penyimpanan JSON
   utils/                 Helper respons, error, dan token
+  docs/swagger.html      Halaman Swagger UI
 test/                    Test otomatis
 test-utils/              Helper test
 postman/                 Collection dan environment Postman
-docs/                    Dokumentasi
+docs/                    Dokumentasi dan openapi.json
 ```
 
 ## Keamanan dan Data

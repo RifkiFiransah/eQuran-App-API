@@ -2,6 +2,8 @@
 
 Base URL lokal: `http://localhost:5000`
 
+Dokumentasi interaktif tersedia di `GET /docs` (Swagger UI) dan spesifikasi OpenAPI 3 di `GET /openapi.json`.
+
 Semua request dan respons menggunakan JSON. Untuk endpoint yang membutuhkan autentikasi, kirim header:
 
 ```http

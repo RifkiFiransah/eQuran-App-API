@@ -3,6 +3,7 @@ const { success } = require('../utils/http')
 const authRoutes = require('./auth')
 const quranRoutes = require('./quran')
 const suratRoutes = require('./surat')
+const docsRoutes = require('./docs')
 
 const infoRoutes = [
   {
@@ -15,6 +16,8 @@ const infoRoutes = [
         endpoints: {
           info: 'GET /',
           health: 'GET /health',
+          documentation: 'GET /docs',
+          openapi: 'GET /openapi.json',
           quranList: 'GET /quran/surat',
           quranDetail: 'GET /quran/surat/{nomor}',
           quranTafsir: 'GET /quran/surat/{nomor}/tafsir',
@@ -44,6 +47,7 @@ const infoRoutes = [
 
 module.exports = [
   ...infoRoutes,
+  ...docsRoutes,
   ...authRoutes,
   ...quranRoutes,
   ...suratRoutes
